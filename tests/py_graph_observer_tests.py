@@ -39,11 +39,18 @@ class PyGraphObserverTests(unittest.TestCase):
                           scenario_generator=scenario_generation)
 
       scenario = scenario_generation.create_single_scenario()
-      observed_world = runtime.reset(scenario)
+      graph, world = runtime.reset(scenario)
 
-      agents_dict = observed_world.agents
+      # perform tests with observed_world here
 
-      print(observed_world.ego_position)
+      print('---------- Nodes ----------')
+      for (id, features) in graph['nodes'].items():
+        print(str(id) + ': ' + str(features))
+
+      print(world.ego_agent)            # works
+      print(world.ego_position)         # does not work
+      print(world.lane_corridor)        # does not work
+      print(world.getAgentInFront())    # does not work
 
 
 if __name__ == '__main__':

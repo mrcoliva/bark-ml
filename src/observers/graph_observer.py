@@ -27,10 +27,32 @@ class GraphObserver(StateObserver):
   def observe(self, world):
     """see base class
     """
-    # build graph here
-    graph = world
+    graph = {
+      'nodes': {},
+      'edges': []
+    }
 
-    return graph
+    ego_agent = world.ego_agent
+
+    for (_, agent) in world.agents.items():
+      state = self._normalize(agent.state) if self._normalize_observations else agent.state
+      graph['nodes'][agent.id] = self._create_node(agent)
+
+    return graph, world
+
+  def _create_node(self, agent):
+    return {
+      'x_pos': agent.state[int(StateDefinition.X_POSITION)],
+      'y_pos': agent.state[int(StateDefinition.Y_POSITION)],
+      'theta_pos': agent.state[int(StateDefinition.THETA_POSITION)],
+      'vel_pos': agent.state[int(StateDefinition.VEL_POSITION)]
+    }
+
+  def _create_edge(self, agent1, agent2):
+    return {
+      'node1': agent1.id,
+      'node2': agent2.id
+    }
 
   def _norm(self, agent_state, position, range):
     agent_state[int(position)] = \
