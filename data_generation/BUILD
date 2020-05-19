@@ -1,0 +1,18 @@
+py_binary(
+    name = "graph_data_generation",
+    srcs = ["graph_data_generation.py"],
+    data = ["@bark_project//python:bark.so",
+            "//tests/data:bark_data",
+            "//configurations/highway:configuration_data"],
+    imports = ["../../python/",
+               "../external/bark_project/python/"],
+    deps = ["@bark_project//modules/runtime:runtime",
+            "@bark_project//modules/runtime/scenario/scenario_generation:scenario_generation",
+            "//src/observers:observers",
+            "//src/wrappers:wrappers",
+            "//src/evaluators:evaluators",
+            "//src/agents:agents",
+            "//src/runners:runners",
+            "//src:rl_runtime"],
+    visibility = ["//visibility:public"],
+)
