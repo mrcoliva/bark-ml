@@ -98,22 +98,25 @@ class GraphObserver(StateObserver):
     res["vel"] = state[int(StateDefinition.VEL_POSITION)]
 
     # get information related to goal
-    goal_center = agent.goal_definition.goal_shape.center[0:2]
+    goal_center = agent.goal_definition.goal_shape.center[0:2] #Velocity the agent should have at goal
+    goal_velocity = np.mean(agent.goal_definition.velocity_range)    
+    
     goal_dx = goal_center[0] - res["x"] # distance to goal in x coord
     goal_dy = goal_center[1] - res["y"] # distance to goal in y coord
     goal_theta = np.arctan2(goal_dy, goal_dx) # theta for straight line to goal
     goal_d = np.sqrt(goal_dx**2 + goal_dy**2) # distance to goal
+    res["goal_vel"] = goal_velocity # Could also include delta between cur_velocity and goal_velocity
     res["goal_d"] = goal_d
     res["goal_theta"] = goal_theta
 
-    if self._normalization_enabled:
+    """if self._normalization_enabled:
       n = self.normalization_data
 
       for k in ["x", "y", "theta", "vel"]:
         res[k] = self._normalize_value(res[k], n[k])
       
       res["goal_d"] = self._normalize_value(res["goal_d"], n["distance"])
-      res["goal_theta"] = self._normalize_value(res["goal_theta"], n["theta"])
+      res["goal_theta"] = self._normalize_value(res["goal_theta"], n["theta"])"""
     
     return res
 
@@ -122,8 +125,8 @@ class GraphObserver(StateObserver):
     steering = features["goal_theta"] - features["theta"]
     actions["steering"] = steering
     
-    dt = 2 # time constant in s for planning horizon
-    acc = 2. * (features["goal_d"] - features["vel"] * dt) / (dt**2)
+    # New acc formula with known goal_velocity as input
+    acc = (features["goal_vel"]**2 - 3*features["vel"]**2)/(features["goal_d"])
     actions["acceleration"] = acc
     return actions
 
