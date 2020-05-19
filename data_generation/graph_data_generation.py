@@ -30,21 +30,25 @@ from src.rl_runtime import RuntimeRL
 
 class DataGenerator(ABC):
   """Data Generator class"""
-  def __init__(self, num_scenarios=10, step_time=0.1, steps=10, dump_dir=None):
+  def __init__(self, num_scenarios=3, step_time=0.1, steps=10, dump_dir=None):
     self.dump_dir = dump_dir
     self.steps = steps
     self.num_scenarios = num_scenarios
-    ###############################################################################
-    # Adapt params (start from default)
-    params = ParameterServer()
+    
+    # Adapt params (start from default_params)
+    self.params = ParameterServer(filename="data_generation/data/default_params.json")
     self.base_dir = os.path.dirname(os.path.dirname(__file__))
-    params["BaseDir"] = self.base_dir
-    params["Scenario"]["Generation"]["ConfigurableScenarioGeneration"]["MapFilename"] = "tests/data/city_highway_straight.xodr"
-    self.params = params
-    ###############################################################################
-    # Start working with params
-    self.scenario_generation = ConfigurableScenarioGeneration(num_scenarios = num_scenarios, params = self.params)
+    self.params["BaseDir"] = self.base_dir
 
+    ###############################################################################
+    params_src_sink_right = self.params["Scenario"]["Generation"]["ConfigurableScenarioGeneration"]["SinksSources"][1]
+    config_goal_definition = params_src_sink_right["ConfigGoalDefinitions"]
+    config_goal_definition["GoalTypeControlled"] = "LaneChangeLeft"
+    config_goal_definition["LongitudinalRange"] = [0, 1] #seems not to work properly -> d_goal always ~ -1 indicats EndOfLane
+    config_goal_definition["MaxLateralDist"] = [1.0, 1.0]
+    #config_goal_definition["VelocityRange"] = [0, 20]
+    ###############################################################################
+    self.scenario_generation = ConfigurableScenarioGeneration(num_scenarios = num_scenarios, params = self.params)
     self.observer = GraphObserver(self.params)
     self.behavior_model = DynamicModel(params=self.params)
     self.evaluator = GoalReached(params=self.params)
@@ -110,7 +114,7 @@ class DataGenerator(ABC):
           print('---> Dumped dataset to: ' + path)
 
 def gen_data(argv):
-  graph_generator = DataGenerator(dump_dir='/home/silvan/working_bark/data_generation/data/dummy_data')
+  graph_generator = DataGenerator(dump_dir='/home/silvan/working_bark/data_generation/data/lane_change')
   graph_generator.run_scenarios()
 
 
