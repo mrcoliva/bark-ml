@@ -40,14 +40,16 @@ class DataGenerator(ABC):
     self.base_dir = os.path.dirname(os.path.dirname(__file__))
     self.params["BaseDir"] = self.base_dir
 
-    ###############################################################################
-    params_src_sink_right = self.params["Scenario"]["Generation"]["ConfigurableScenarioGeneration"]["SinksSources"][1]
-    config_goal_definition = params_src_sink_right["ConfigGoalDefinitions"]
-    config_goal_definition["GoalTypeControlled"] = "LaneChangeLeft"
-    config_goal_definition["LongitudinalRange"] = [0, 1] #seems not to work properly -> d_goal always ~ -1 indicats EndOfLane
+    ##########  PARAMETER TO SPECIFY    ###########################################
+    # 1: right_lane, 0: left_lane
+    params_src_sink = self.params["Scenario"]["Generation"]["ConfigurableScenarioGeneration"]["SinksSources"][1] 
+    config_goal_definition = params_src_sink["ConfigGoalDefinitions"]
+    config_goal_definition["GoalTypeControlled"] = "EndOfLane" #alternative: "LaneChangeLeft"
+    config_goal_definition["LongitudinalRange"] = [0.8, 0.83] #seems not to work properly -> d_goal always ~ -1 indicats EndOfLane
     config_goal_definition["MaxLateralDist"] = [1.0, 1.0]
     #config_goal_definition["VelocityRange"] = [0, 20]
     ###############################################################################
+
     self.scenario_generation = ConfigurableScenarioGeneration(num_scenarios = num_scenarios, params = self.params)
     self.observer = GraphObserver(self.params)
     self.behavior_model = DynamicModel(params=self.params)
@@ -74,12 +76,10 @@ class DataGenerator(ABC):
     data_scenario = list()
     graph = self.runtime.reset(scenario)
     for i in range(self.steps):
-        # Generate random steer and acc commands
-        steer = np.random.random()*0.2 - 0.1
-        acc = np.random.random()*1.0 - 1.0
+        steer = np.random.random()*0.2 - 0.1  #random value between [-.1, .1]
+        acc = np.random.random()*1.0 - 1.0    #random value between [-.5, .5]
 
         # Run step
-        # [acc, steer] with -1<acc<1 and -0.1<steer<0.1
         (graph, actions), _, _, _ = self.runtime.step([acc, steer]) 
         # Save datum in data_scenario
         datum = dict()
